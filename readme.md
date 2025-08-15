@@ -49,6 +49,7 @@ Open `http://localhost:3000/login.html`
 
 ### Grocery Items
 - `GET /api/grocery-items?page=1&limit=20` - Get paginated items
+- `GET /api/grocery-items?search=apple` - Search items
 - `POST /api/grocery-items` - Add new item
 - `PUT /api/grocery-items/:id` - Update item
 - `DELETE /api/grocery-items/:id` - Delete item

@@ -130,7 +130,7 @@ body {
 
 /* Grocery Grid */
 .grocery-grid {
-    padding: 0 20px 100px;
+    padding: 0 20px 10px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 10px;
@@ -449,4 +449,11 @@ body {
     color: var(--color-text-light);
     font-size: 14px;
     padding: 0 10px;
+}
+
+.grocery-date {
+  font-size: 11px;
+  color: var(--color-text-lighter);
+  margin-top: 4px;
+  text-align: right;
 }

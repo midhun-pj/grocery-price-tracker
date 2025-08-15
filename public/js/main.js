@@ -72,7 +72,7 @@ function renderGroceryGrid(items) {
     emptyState.style.display = 'none';
 
     grid.innerHTML = items.map(item => `
-                <div class="grocery-card fade-in" onclick="showItemDetail('${item.name}')">
+                <div class="grocery-card fade-in" onclick="showItemDetail('${item.id}')">
                     <div class="grocery-icon">
                         <i class="${getGroceryIcon(item.name)}"></i>
                     </div>
@@ -82,64 +82,71 @@ function renderGroceryGrid(items) {
                         <span class="grocery-quantity">${item.quantity} ${item.unit}</span>
                     </div>
                     <div class="grocery-store">${item.supermarket}</div>
+                    <div class="grocery-date">${item.date}</div>
                 </div>
             `).join('');
 }
 
 // Search functionality
 function setupSearch() {
-    const searchInput = document.getElementById('searchInput');
-    searchInput.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase();
-        const activeFilter = document.querySelector('.filter-chip.active').dataset.filter;
+  const searchInput = document.getElementById('searchInput');
+  let searchTimeout;
+  
+  searchInput.addEventListener('input', (e) => {
+    const query = e.target.value.trim();
+    
+    // Debounce search requests (wait 300ms after user stops typing)
+    clearTimeout(searchTimeout);
 
-        let filteredData = groceryData;
-        if (activeFilter !== 'all') {
-            filteredData = filteredData.filter(item => item.supermarket === activeFilter);
-        }
-
-        if (query) {
-            filteredData = filteredData.filter(item =>
-                item.name.toLowerCase().includes(query)
-            );
-        }
-
-        renderGroceryGrid(getUniqueItems(filteredData));
-    });
+    searchTimeout = setTimeout(() => {
+      fetchItems(1, 5, query); // Reset to page 1 on new search
+    }, 300);
+  });
 }
 
 // Show item detail view
-function showItemDetail(itemName) {
-    const item = getUniqueItems(groceryData).find(i => i.name === itemName);
-    if (!item) return;
+async function showItemDetail(itemId) {
+  try {
+    // Fetch item details with history using the new API
+    const res = await fetch(`/api/grocery-items/${itemId}`, { headers });
+    
+    if (!res.ok) {
+      throw new Error('Item not found');
+    }
+    
+    const data = await res.json();
+    const { currentItem, history, statistics } = data;
 
+    // Show detail view
     document.getElementById('dashboard-view').style.display = 'none';
     document.getElementById('item-detail-view').style.display = 'block';
     document.querySelector('.back-btn').style.display = 'flex';
 
     // Populate item details
-    document.getElementById('itemIconLarge').innerHTML = `<i class="${getGroceryIcon(item.name)}"></i>`;
-    document.getElementById('itemTitle').textContent = item.name;
-    document.getElementById('currentPrice').textContent = `€${item.price}`;
+    document.getElementById('itemIconLarge').innerHTML = `<i class="${getGroceryIcon(currentItem.name)}"></i>`;
+    document.getElementById('itemTitle').textContent = currentItem.name;
+    document.getElementById('currentPrice').textContent = `€${currentItem.price}`;
 
-    // Calculate statistics
-    const avgPrice = (item.history.reduce((sum, h) => sum + parseFloat(h.price), 0) / item.history.length).toFixed(2);
-    document.getElementById('avgPrice').textContent = `€${avgPrice}`;
-    document.getElementById('totalPurchases').textContent = item.history.length;
+    // Use pre-calculated statistics
+    document.getElementById('avgPrice').textContent = `€${statistics.avgPrice}`;
+    document.getElementById('totalPurchases').textContent = statistics.totalPurchases;
 
     // Render history
     const historyContainer = document.getElementById('historyContainer');
-    historyContainer.innerHTML = item.history
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .map(h => `
-                    <div class="history-item fade-in">
-                        <div class="history-info">
-                            <div class="history-store">${h.supermarket}</div>
-                            <div class="history-date">${h.date} • ${h.quantity} ${h.unit}</div>
-                        </div>
-                        <div class="history-price">€${h.price}</div>
-                    </div>
-                `).join('');
+    historyContainer.innerHTML = history.map(h => `
+      <div class="history-item fade-in">
+        <div class="history-info">
+          <div class="history-store">${h.supermarket}</div>
+          <div class="history-date">${h.date} • ${h.quantity} ${h.unit}</div>
+        </div>
+        <div class="history-price">€${h.price}</div>
+      </div>
+    `).join('');
+
+  } catch (error) {
+    console.error('Error fetching item details:', error);
+    alert('Failed to load item details');
+  }
 }
 
 // Go back to dashboard
@@ -150,49 +157,61 @@ function goBackToDashboard() {
     init();
 }
 
-async function fetchItems(page = 1, limit = 5) {
+async function fetchItems(page = 1, limit = 5, search = '') {
     try {
-        const res = await fetch(`/api/grocery-items?page=${page}&limit=${limit}`, { headers });
+
+        const url = new URL('/api/grocery-items', window.location.origin);
+
+        url.searchParams.append('page', page);
+        url.searchParams.append('limit', limit);
+
+        if (search) {
+            url.searchParams.append('search', search);
+        }
+
+
+        const res = await fetch(url.toString(), { headers });
         const response = await res.json();
 
         groceryData = response.data;
         currentPage = response.pagination.currentPage;
         totalPages = response.pagination.totalPages;
+        currentSearch = search;
 
-        renderGroceryGrid(getUniqueItems(groceryData));
+        renderGroceryGrid(groceryData);
         renderPaginationControls(response.pagination);
     } catch (error) {
         console.error('Error fetching items:', error);
     }
 }
 
-// New pagination controls renderer
 function renderPaginationControls(pagination) {
-    let paginationHtml = '<div class="pagination-controls" style="text-align: center; padding: 20px;">';
-
-    // Previous button
-    if (pagination.hasPrevPage) {
-        paginationHtml += `<button onclick="fetchItems(${pagination.currentPage - 1})" class="pagination-btn">← Previous</button>`;
-    }
-
-    // Page info
-    paginationHtml += `<span class="page-info">Page ${pagination.currentPage} of ${pagination.totalPages} (${pagination.totalItems} items)</span>`;
-
-    // Next button
-    if (pagination.hasNextPage) {
-        paginationHtml += `<button onclick="fetchItems(${pagination.currentPage + 1})" class="pagination-btn">Next →</button>`;
-    }
-
-    paginationHtml += '</div>';
-
-    // Insert after grocery grid
-    const existingPagination = document.querySelector('.pagination-controls');
-    if (existingPagination) {
-        existingPagination.remove();
-    }
-
-    document.getElementById('groceryGrid').insertAdjacentHTML('afterend', paginationHtml);
+  let paginationHtml = '<div class="pagination-controls" style="text-align: center; padding: 20px;">';
+  
+  // Previous button
+  if (pagination.hasPrevPage) {
+    paginationHtml += `<button onclick="fetchItems(${pagination.currentPage - 1}, ${pagination.itemsPerPage}, '${currentSearch}')" class="pagination-btn">Previous</button>`;
+  }
+  
+  // Page info
+  paginationHtml += `<span class="page-info">Page ${pagination.currentPage} of ${pagination.totalPages} (${pagination.totalCount} items)</span>`;
+  
+  // Next button
+  if (pagination.hasNextPage) {
+    paginationHtml += `<button onclick="fetchItems(${pagination.currentPage + 1}, ${pagination.itemsPerPage}, '${currentSearch}')" class="pagination-btn">Next</button>`;
+  }
+  
+  paginationHtml += '</div>';
+  
+  // Replace existing pagination
+  const existingPagination = document.querySelector('.pagination-controls');
+  if (existingPagination) {
+    existingPagination.remove();
+  }
+  
+  document.getElementById('groceryGrid').insertAdjacentHTML('afterend', paginationHtml);
 }
+
 
 async function addItem(item) {
     await fetch('/api/grocery-items', { method: 'POST', headers, body: JSON.stringify(item) });
@@ -208,6 +227,7 @@ async function deleteItem(id) {
 
 async function init() {
     await fetchItems();
+    document.getElementById('searchInput').value = '';
     setupSearch();
 }
 
