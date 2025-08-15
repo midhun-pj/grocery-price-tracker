@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grocery Price Tracker</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Dashboard View -->
+        <div id="dashboard-view">
+            <section class="header">
+                <h1>Grocery Tracker</h1>
+                <p>Compare prices across supermarkets</p>
+            </section>
+
+            <section class="search-container">
+                <article class="search-box">
+                    <input type="text" class="search-input" placeholder="Search groceries..." id="searchInput">
+                    <i class="fas fa-search search-icon"></i>
+                </article>
+            </section>
+
+            <section class="grocery-grid" id="groceryGrid">
+                <!-- Grocery items will be populated here -->
+            </section>
+
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <div class="empty-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <h3>No groceries found</h3>
+                <p>Try adjusting your search or filters</p>
+            </div>
+        </div>
+
+        <a href="add.html" class="fab">
+            <i class="fas fa-plus"></i>
+        </a>
+
+        <!-- Item Detail View -->
+        <div id="item-detail-view" class="item-detail">
+            <div class="header">
+                <button class="back-btn" id="backBtn">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h1>Item Details</h1>
+                <p>Purchase history and price trends</p>
+            </div>
+
+            <div class="item-header">
+                <div class="item-icon-large" id="itemIconLarge">
+                    <i class="fas fa-apple-alt"></i>
+                </div>
+                <h2 class="item-title" id="itemTitle">Apple</h2>
+                <div class="current-price" id="currentPrice">€1.69</div>
+                <div class="price-trend" id="priceTrend">
+                    <i class="fas fa-arrow-down"></i>
+                    Best price this month
+                </div>
+            </div>
+
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-value" id="avgPrice">€1.65</div>
+                    <div class="stat-label">Avg Price</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalPurchases">4</div>
+                    <div class="stat-label">Purchases</div>
+                </div>
+            </div>
+
+            <div class="history-section">
+                <h3 class="section-title">Purchase History</h3>
+                <div id="historyContainer">
+                    <!-- History items will be populated here -->
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+    <script src="./js/main.js"></script>
+</body>
+
+</html>
