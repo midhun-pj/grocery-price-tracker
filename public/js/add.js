@@ -142,7 +142,7 @@ class GroceryItemForm {
             quantity: parseFloat(document.getElementById('quantity').value),
             unit: document.getElementById('unit').value,
             price: parseFloat(document.getElementById('price').value),
-            date: new Date(document.getElementById('date').value).toLocaleDateString('en-GB'),
+            date: this.formatDateToISO(document.getElementById('date').value),
             supermarket_id: parseInt(document.getElementById('supermarket').value, 10)
         };
     }
@@ -234,6 +234,13 @@ class GroceryItemForm {
         setTimeout(() => {
             notification.remove();
         }, 3000);
+    }
+
+    formatDateToISO(dateObj) {
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // months are zero-based
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 }
 
