@@ -6,11 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grocery Price Tracker</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles/common.css">
+    <link rel="stylesheet" href="styles/dashboard.css">
+    <link rel="stylesheet" href="styles/grocery-detail.css">
 </head>
 
 <body>
-    <div class="container">
+    <div class="dash-container">
         <!-- Dashboard View -->
         <div id="dashboard-view">
             <section class="header">
@@ -29,13 +31,22 @@
                 <!-- Grocery items will be populated here -->
             </section>
 
-            <div class="empty-state" id="emptyState" style="display: none;">
+            <section class="loading-spinner" id="loadingSpinner">
+                <article class="spinner"></article>
+            </section>
+
+            <section class="no-more-data" id="noMoreData">
+                <i class="fas fa-check-circle"></i>
+                No more items to load
+            </section>
+
+            <section class="empty-state" id="emptyState" style="display: none;">
                 <div class="empty-icon">
                     <i class="fas fa-shopping-cart"></i>
                 </div>
                 <h3>No groceries found</h3>
                 <p>Try adjusting your search</p>
-            </div>
+            </section>
         </div>
 
         <a href="add.html" class="fab">
@@ -44,20 +55,19 @@
 
         <!-- Item Detail View -->
         <div id="item-detail-view" class="item-detail">
-            <div class="header">
+            <div class="header disp-flex flex-center">
                 <button class="back-btn" id="backBtn">
                     <i class="fas fa-arrow-left"></i>
                 </button>
-                <h1>Item Details</h1>
                 <p>Purchase history and price trends</p>
             </div>
 
             <div class="item-header">
                 <div class="item-icon-large" id="itemIconLarge">
-                    <i class="fas fa-apple-alt"></i>
+
                 </div>
-                <h2 class="item-title" id="itemTitle">Apple</h2>
-                <div class="current-price" id="currentPrice">€1.69</div>
+                <h2 class="item-title" id="itemTitle"></h2>
+                <div class="current-price" id="currentPrice"></div>
                 <div class="price-trend" id="priceTrend">
                     <i class="fas fa-arrow-down"></i>
                     Best price this month

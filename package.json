@@ -1,7 +1,7 @@
 {
   "name": "grocery-price-tracker",
   "description": "Track grocery prices across different supermarkets",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -19,7 +19,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/midhun-pj/grocery-app.git"
+    "url": "https://github.com/midhun-pj/grocery-price-tracker"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

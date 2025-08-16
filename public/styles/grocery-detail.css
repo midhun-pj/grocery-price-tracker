@@ -1,0 +1,113 @@
+/* Item Detail View */
+.item-detail {
+    display: none;
+    padding: 20px;
+    background: var(--color-white);
+    min-height: calc(100vh - 80px);
+}
+
+.item-header {
+    text-align: center;
+    margin: 30px 0;
+}
+
+.item-icon-large {
+    width: 80px;
+    height: 80px;
+    background: var(--gradient-card);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-white);
+    font-size: 35px;
+    margin: 0 auto 15px;
+}
+
+.item-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--color-text);
+}
+
+.current-price {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 5px;
+}
+
+.price-trend {
+    font-size: 14px;
+    color: var(--color-success);
+}
+
+/* Purchase History */
+.history-section {
+    margin-top: 30px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--color-text);
+}
+
+.history-item {
+    background: var(--color-bg-light);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.history-store {
+    font-weight: 600;
+    color: var(--color-text);
+    text-transform: capitalize;
+    margin-bottom: 4px;
+}
+
+.history-date {
+    font-size: 12px;
+    color: var(--color-text-light);
+}
+
+.history-price {
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--color-primary);
+}
+
+/* Stats Cards */
+.stats-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: var(--gradient-stat);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: var(--color-text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}

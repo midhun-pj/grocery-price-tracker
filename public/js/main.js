@@ -3,137 +3,333 @@ if (!token) location.href = 'login.html';
 
 const headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
 
-let groceryData = [];
-let currentPage = 1;
-let totalPages = 1;
+function formatDisplayDate(isoDate) {
+  // Convert YYYY-MM-DD to DD/MM/YYYY for display
+  const [year, month, day] = isoDate.split('-');
+  return `${day}/${month}/${year}`;
+}
+
+class Grocery {
+  constructor() {
+    this.apiUrl = '/api/grocery-items';
+  }
+
+  async fetchGroceries(page = 1, limit = 20, search = '') {
+    try {
+      const url = new URL(this.apiUrl, window.location.origin);
+
+      url.searchParams.append('page', page);
+      url.searchParams.append('limit', limit);
+
+      if (search) {
+        url.searchParams.append('search', search);
+      }
 
 
-// Get unique items
-function getUniqueItems(data) {
-    const itemMap = new Map();
+      const res = await fetch(url.toString(), { headers });
+      return await res.json();
+    } catch (error) {
+      console.error('Error fetching items:', error);
+    }
+  }
 
-    data.forEach(item => {
-        if (!itemMap.has(item.name)) {
-            itemMap.set(item.name, {
-                ...item,
-                history: data.filter(d => d.name === item.name)
-            });
-        } else {
-            // Update with latest price if more recent
-            const existing = itemMap.get(item.name);
-            if (new Date(item.date) > new Date(existing.date)) {
-                itemMap.set(item.name, {
-                    ...item,
-                    history: data.filter(d => d.name === item.name)
-                });
-            }
-        }
+  async addItem(item) {
+    await fetch(this.apiUrl, { method: 'POST', headers, body: JSON.stringify(item) });
+  }
+
+  async deleteItem(id) {
+    await fetch(`${this.apiUrl}/${id}`, { method: 'DELETE', headers });
+  }
+}
+
+class Dashboard {
+
+  constructor() {
+    this.api = new Grocery();
+
+    this.currentPage = 1;
+    this.itemsPerPage = 20;
+    this.isLoading = false;
+    this.hasMoreData = true;
+    this.searchQuery = '';
+    this.searchTimeout = null;
+
+    this.isLoading = false;
+    this.elements = this.initializeElements();
+
+    this.groceryItems = [];
+
+    this.init();
+  }
+
+  setupEventListeners() {
+    // Infinite scroll
+    window.addEventListener('scroll', (ev) => this.handleScroll(ev));
+
+    this.elements.searchInput.addEventListener('input', (e) => this.handleSearch(e));
+
+    this.elements.backButton.addEventListener('click', () => {
+      this.hideDetailPage();
     });
 
-    return Array.from(itemMap.values());
-}
+    // Pull to refresh (optional)
+    window.addEventListener('touchstart', this.handleTouchStart.bind(this));
+    window.addEventListener('touchmove', this.handleTouchMove.bind(this));
+    window.addEventListener('touchend', this.handleTouchEnd.bind(this));
+  }
 
-// Get icon for grocery item
-function getGroceryIcon(name) {
-    const iconMap = {
-        'apple': 'fas fa-apple-alt',
-        'milk': 'fas fa-wine-bottle',
-        'kiwi': 'fas fa-leaf',
-        'mushroom': 'fas fa-seedling',
-        'bread': 'fas fa-bread-slice',
-        'cheese': 'fas fa-cheese',
-        'meat': 'fas fa-drumstick-bite',
-        'fish': 'fas fa-fish',
-        'vegetables': 'fas fa-carrot',
-        'fruits': 'fas fa-apple-alt'
-    };
+  handleScroll() {
+    if (this.isLoading || !this.hasMoreData) return;
 
-    const lowerName = name.toLowerCase();
-    for (const [key, icon] of Object.entries(iconMap)) {
-        if (lowerName.includes(key)) {
-            return icon;
-        }
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const windowHeight = window.innerHeight;
+    const documentHeight = document.documentElement.scrollHeight;
+
+    // Load more when user scrolls to within 100px of bottom
+    if (scrollTop + windowHeight >= documentHeight - 100) {
+      this.loadMoreData();
     }
-    return 'fas fa-shopping-basket';
-}
+  }
 
-// Render grocery grid
-function renderGroceryGrid(items) {
-    const grid = document.getElementById('groceryGrid');
-    const emptyState = document.getElementById('emptyState');
+  handleSearch(e) {
+    clearTimeout(this.searchTimeout);
 
-    if (items.length === 0) {
-        grid.style.display = 'none';
-        emptyState.style.display = 'block';
-        return;
-    }
-
-    grid.style.display = 'grid';
-    emptyState.style.display = 'none';
-
-    grid.innerHTML = items.map(item => `
-                <div class="grocery-card fade-in" onclick="showItemDetail('${item.id}')">
-                    <div class="grocery-icon">
-                        <i class="${getGroceryIcon(item.name)}"></i>
-                    </div>
-                    <div class="grocery-name">${item.name}</div>
-                    <div class="grocery-info">
-                        <span class="grocery-price">€${item.price}</span>
-                        <span class="grocery-quantity">${item.quantity} ${item.unit}</span>
-                    </div>
-                    <div class="grocery-store">${item.supermarket}</div>
-                    <div class="grocery-date">${item.date}</div>
-                </div>
-            `).join('');
-}
-
-// Search functionality
-function setupSearch() {
-  const searchInput = document.getElementById('searchInput');
-  let searchTimeout;
-  
-  searchInput.addEventListener('input', (e) => {
-    const query = e.target.value.trim();
-    
-    // Debounce search requests (wait 300ms after user stops typing)
-    clearTimeout(searchTimeout);
-
-    searchTimeout = setTimeout(() => {
-      fetchItems(1, 5, query); // Reset to page 1 on new search
+    this.searchTimeout = setTimeout(() => {
+      const query = e.target.value.trim();
+      if (query !== this.searchQuery) {
+        this.searchQuery = query;
+        this.resetAndReload();
+      }
     }, 300);
-  });
-}
+  }
 
-// Show item detail view
-async function showItemDetail(itemId) {
-  try {
-    // Fetch item details with history using the new API
-    const res = await fetch(`/api/grocery-items/${itemId}`, { headers });
-    
-    if (!res.ok) {
-      throw new Error('Item not found');
+  // Pull to refresh functionality (optional)
+  handleTouchStart(e) {
+    this.touchStartY = e.touches[0].clientY;
+  }
+
+
+  handleTouchMove(e) {
+    if (!this.touchStartY) return;
+
+    this.touchCurrentY = e.touches.clientY;
+    const touchDiff = this.touchCurrentY - this.touchStartY;
+
+    // If user pulls down at the top of the page
+    if (window.scrollY === 0 && touchDiff > 0) {
+      e.preventDefault();
     }
-    
-    const data = await res.json();
-    const { currentItem, history, statistics } = data;
+  }
 
-    // Show detail view
-    document.getElementById('dashboard-view').style.display = 'none';
-    document.getElementById('item-detail-view').style.display = 'block';
-    document.querySelector('.back-btn').style.display = 'flex';
+  async handleTouchEnd(e) {
+    if (!this.touchStartY || !this.touchCurrentY) return;
 
-    // Populate item details
-    document.getElementById('itemIconLarge').innerHTML = `<i class="${getGroceryIcon(currentItem.name)}"></i>`;
-    document.getElementById('itemTitle').textContent = currentItem.name;
-    document.getElementById('currentPrice').textContent = `€${currentItem.price}`;
+    const touchDiff = this.touchCurrentY - this.touchStartY;
 
-    // Use pre-calculated statistics
-    document.getElementById('avgPrice').textContent = `€${statistics.avgPrice}`;
-    document.getElementById('totalPurchases').textContent = statistics.totalPurchases;
+    // If pulled down more than 100px and at top of page
+    if (window.scrollY === 0 && touchDiff > 100) {
+      await this.resetAndReload();
+    }
 
-    // Render history
-    const historyContainer = document.getElementById('historyContainer');
-    historyContainer.innerHTML = history.map(h => `
+    this.touchStartY = null;
+    this.touchCurrentY = null;
+  }
+
+  async loadMoreData() {
+    if (this.isLoading || !this.hasMoreData) return;
+
+    this.showLoading(true);
+    this.currentPage++;
+
+    try {
+      const data = await this.api.fetchGroceries(this.currentPage, this.itemsPerPage, this.searchQuery);
+      this.processApiResponse(data, false);
+    } catch (error) {
+      this.showError('Failed to load more items');
+      this.currentPage--; // Rollback page increment
+      console.error('Error loading more data:', error);
+    } finally {
+      this.showLoading(false);
+    }
+  }
+
+  async loadInitialData() {
+    this.showLoading(true);
+
+    try {
+      const data = await this.api.fetchGroceries(this.currentPage, this.itemsPerPage, this.searchQuery);
+      this.processApiResponse(data, true);
+    } catch (error) {
+      this.showError('Failed to load grocery items');
+      console.error('Error loading initial data:', error);
+    } finally {
+      this.showLoading(false);
+    }
+  }
+
+  processApiResponse(data, isInitial = false) {
+    const { data: items, pagination } = data;
+
+    if (isInitial) {
+      this.groceryItems = items;
+      this.elements.groceryList.innerHTML = '';
+    } else {
+      this.groceryItems.push(...items);
+    }
+
+    // Update pagination state
+    this.hasMoreData = pagination.hasNextPage;
+    this.currentPage = pagination.currentPage;
+
+    // Render items
+    if (isInitial && items.length === 0) {
+      this.showEmptyState(true);
+    } else {
+      this.showEmptyState(false);
+      if (!isInitial) {
+        this.renderItems(items); // Only render new items
+      } else {
+        this.renderItems(this.groceryItems); // Render all items
+      }
+    }
+
+    // Show/hide no more data message
+    if (!this.hasMoreData && this.groceryItems.length > 0) {
+      this.handleVisibilityOfElements(this.elements.noMoreData, 'flex');
+    } else {
+      this.handleVisibilityOfElements(this.elements.noMoreData, 'none');
+    }
+  }
+
+  renderItems(items) {
+    const fragment = document.createDocumentFragment();
+
+    items.forEach(item => {
+      const itemElement = this.createGroceryItemElement(item);
+      fragment.appendChild(itemElement);
+    });
+
+    this.elements.groceryList.appendChild(fragment);
+  }
+
+  createGroceryItemElement(item) {
+    const div = document.createElement('div');
+    div.className = 'grocery-card fade-in';
+    div.innerHTML = `
+            <div class="grocery-icon">
+                <i class="${this.getGroceryIcon(item.name)}"></i>
+            </div>
+            <div class="grocery-name">${item.name}</div>
+            <div class="grocery-info">
+              <span class="grocery-price">€${parseFloat(item.price).toFixed(2)}</span>
+              <span class="grocery-quantity">${item.quantity} ${item.unit}</span>
+            </div>
+            <div class="grocery-store">${item.supermarket}</div>
+            <div class="grocery-date">${formatDisplayDate(item.date)}</div>
+        `;
+
+    // Add click event for item details
+    div.addEventListener('click', () => this.showItemDetail(item.id));
+
+    return div;
+  }
+
+  async resetAndReload() {
+    this.currentPage = 1;
+    this.hasMoreData = true;
+    this.groceryItems = [];
+    this.elements.groceryList.innerHTML = '';
+    this.handleVisibilityOfElements(this.elements.noMoreData, 'none');
+
+    await this.loadInitialData();
+  }
+
+
+  showEmptyState(show) {
+    if (show) {
+      this.handleVisibilityOfElements(this.elements.emptyState, 'block');
+      this.handleVisibilityOfElements(this.elements.groceryList, 'none');
+    } else {
+      this.handleVisibilityOfElements(this.elements.emptyState, 'none');
+      this.handleVisibilityOfElements(this.elements.groceryList, 'grid');
+    }
+  }
+
+  showError(message) {
+    // You could implement a toast notification here
+    console.error(message);
+  }
+
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit'
+    });
+  }
+
+  initializeElements() {
+    return {
+      groceryList: document.getElementById('groceryGrid'),
+      loadingSpinner: document.getElementById('loadingSpinner'),
+      noMoreData: document.getElementById('noMoreData'),
+      emptyState: document.getElementById('emptyState'),
+      searchInput: document.getElementById('searchInput'),
+      itemDetail: document.getElementById('item-detail-view'),
+      dashboard: document.getElementById('dashboard-view'),
+      backButton: document.querySelector('.back-btn')
+    };
+  }
+
+  async init() {
+    this.setupEventListeners();
+    await this.loadInitialData();
+  }
+
+  showDashboard(show) {
+    if (show) {
+      this.handleVisibilityOfElements(this.elements.dashboard, 'block');
+    } else {
+      this.handleVisibilityOfElements(this.elements.dashboard, 'none');
+    }
+  }
+
+  async showItemDetail(itemId) {
+
+    try {
+
+      const res = await fetch(`/api/grocery-items/${itemId}`, { headers });
+
+      if (!res.ok) {
+        throw new Error('Item not found');
+      }
+
+      const { currentItem, history, statistics } = await res.json();
+
+      // Show detail view
+      this.showDashboard(false);
+      this.handleVisibilityOfElements(this.elements.itemDetail, 'block');
+      this.handleVisibilityOfElements(this.elements.backButton, 'flex');
+
+      // Populate item details
+      document.getElementById('itemIconLarge').innerHTML = `<i class="${this.getGroceryIcon(currentItem.name)}"></i>`;
+      document.getElementById('itemTitle').textContent = currentItem.name;
+      document.getElementById('currentPrice').textContent = `€${currentItem.price}`;
+
+      // Use pre-calculated statistics
+      document.getElementById('avgPrice').textContent = `€${statistics.avgPrice}`;
+      document.getElementById('totalPurchases').textContent = statistics.totalPurchases;
+
+      // Render history
+      const historyContainer = document.getElementById('historyContainer');
+      historyContainer.innerHTML = history.map(h => `
       <div class="history-item fade-in">
         <div class="history-info">
           <div class="history-store">${h.supermarket}</div>
@@ -143,95 +339,52 @@ async function showItemDetail(itemId) {
       </div>
     `).join('');
 
-  } catch (error) {
-    console.error('Error fetching item details:', error);
-    alert('Failed to load item details');
-  }
-}
-
-// Go back to dashboard
-function goBackToDashboard() {
-    document.getElementById('item-detail-view').style.display = 'none';
-    document.getElementById('dashboard-view').style.display = 'block';
-    document.querySelector('.back-btn').style.display = 'none';
-    init();
-}
-
-async function fetchItems(page = 1, limit = 5, search = '') {
-    try {
-
-        const url = new URL('/api/grocery-items', window.location.origin);
-
-        url.searchParams.append('page', page);
-        url.searchParams.append('limit', limit);
-
-        if (search) {
-            url.searchParams.append('search', search);
-        }
-
-
-        const res = await fetch(url.toString(), { headers });
-        const response = await res.json();
-
-        groceryData = response.data;
-        currentPage = response.pagination.currentPage;
-        totalPages = response.pagination.totalPages;
-        currentSearch = search;
-
-        renderGroceryGrid(groceryData);
-        renderPaginationControls(response.pagination);
     } catch (error) {
-        console.error('Error fetching items:', error);
+      console.error('Error fetching item details:', error);
+      alert('Failed to load item details');
     }
-}
-
-function renderPaginationControls(pagination) {
-  let paginationHtml = '<div class="pagination-controls" style="text-align: center; padding: 20px;">';
-  
-  // Previous button
-  if (pagination.hasPrevPage) {
-    paginationHtml += `<button onclick="fetchItems(${pagination.currentPage - 1}, ${pagination.itemsPerPage}, '${currentSearch}')" class="pagination-btn">Previous</button>`;
   }
-  
-  // Page info
-  paginationHtml += `<span class="page-info">Page ${pagination.currentPage} of ${pagination.totalPages} (${pagination.totalCount} items)</span>`;
-  
-  // Next button
-  if (pagination.hasNextPage) {
-    paginationHtml += `<button onclick="fetchItems(${pagination.currentPage + 1}, ${pagination.itemsPerPage}, '${currentSearch}')" class="pagination-btn">Next</button>`;
+
+  getGroceryIcon(name) {
+    const iconMap = {
+      'apple': 'fas fa-apple-alt',
+      'milk': 'fas fa-wine-bottle',
+      'mushroom': 'fas fa-seedling',
+      'bread': 'fas fa-bread-slice',
+      'cheese': 'fas fa-cheese',
+      'carrot': 'fas fa-carrot',
+    };
+
+    for (const [key, icon] of Object.entries(iconMap)) {
+      if (name.toLowerCase().includes(key)) {
+        return icon;
+      }
+    }
+    return 'fas fa-shopping-basket';
   }
-  
-  paginationHtml += '</div>';
-  
-  // Replace existing pagination
-  const existingPagination = document.querySelector('.pagination-controls');
-  if (existingPagination) {
-    existingPagination.remove();
+
+  showLoading(show) {
+    this.isLoading = show;
+    if (show) {
+      this.handleVisibilityOfElements(this.elements.loadingSpinner, 'block');
+    } else {
+      this.handleVisibilityOfElements(this.elements.loadingSpinner, 'none');
+    }
   }
-  
-  document.getElementById('groceryGrid').insertAdjacentHTML('afterend', paginationHtml);
+
+  handleVisibilityOfElements(ele, displayProperty) {
+    ele.style.display = displayProperty;
+  }
+
+  hideDetailPage() {
+    this.showDashboard(true);
+    this.handleVisibilityOfElements(this.elements.itemDetail, 'none');
+    this.handleVisibilityOfElements(this.elements.backButton, 'none');
+  }
+
 }
 
 
-async function addItem(item) {
-    await fetch('/api/grocery-items', { method: 'POST', headers, body: JSON.stringify(item) });
-
-    fetchItems(currentPage); // Refresh current page
-}
-
-async function deleteItem(id) {
-    await fetch('/api/grocery-items/' + id, { method: 'DELETE', headers });
-
-    fetchItems(currentPage); // Refresh current page
-}
-
-async function init() {
-    await fetchItems();
-    document.getElementById('searchInput').value = '';
-    setupSearch();
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    init();
-    document.getElementById('backBtn').addEventListener('click', goBackToDashboard);
+document.addEventListener('DOMContentLoaded', async () => {
+  new Dashboard();
 });
