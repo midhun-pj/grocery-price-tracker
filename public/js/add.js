@@ -137,12 +137,15 @@ class GroceryItemForm {
     }
 
     getFormData() {
+    
+    	const dateOb = new Date(document.getElementById('date').value);
+    
         return {
             name: document.getElementById('itemName').value.trim(),
             quantity: parseFloat(document.getElementById('quantity').value),
             unit: document.getElementById('unit').value,
             price: parseFloat(document.getElementById('price').value),
-            date: this.formatDateToISO(document.getElementById('date').value),
+            date: this.formatDateToISO(dateOb),
             supermarket_id: parseInt(document.getElementById('supermarket').value, 10)
         };
     }
