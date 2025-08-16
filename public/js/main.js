@@ -226,10 +226,32 @@ class Dashboard {
             </div>
             <div class="grocery-store">${item.supermarket}</div>
             <div class="grocery-date">${formatDisplayDate(item.date)}</div>
+            <button class="delete-btn" title="Delete item" data-id="${item.id}">
+                <i class="fas fa-trash"></i>
+            </button>
         `;
 
     // Add click event for item details
-    div.addEventListener('click', () => this.showItemDetail(item.id));
+    div.addEventListener('click', (e) => {
+      if (e.target.closest('.delete-btn')) return;
+
+      this.showItemDetail(item.id)
+    });
+
+    const deleteBtn = div.querySelector('.delete-btn');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', async (e) => {
+        e.stopPropagation(); // Prevents triggering card click
+        if (confirm("Delete this item?")) {
+          try {
+            await this.api.deleteItem(item.id); // Or however you call delete
+            div.remove(); // Remove element from DOM
+          } catch (err) {
+            alert("Failed to delete item.");
+          }
+        }
+      });
+    }
 
     return div;
   }
