@@ -137,9 +137,8 @@ class GroceryItemForm {
     }
 
     getFormData() {
-    
-    	const dateOb = new Date(document.getElementById('date').value);
-    
+        const dateOb = new Date(document.getElementById('date').value);
+
         return {
             name: document.getElementById('itemName').value.trim(),
             quantity: parseFloat(document.getElementById('quantity').value),
@@ -165,6 +164,24 @@ class GroceryItemForm {
         }
     }
 
+    showSuccessScreen(message = 'Item Added Successfully!', description = 'Redirecting you back to the dashboard...') {
+        const addContainer = document.getElementById('addContainer');
+        const successScreen = document.getElementById('successScreen');
+
+        // Update the success screen content
+        const successTitle = successScreen.querySelector('h2');
+        const successDescription = successScreen.querySelector('p');
+
+        if (successTitle) successTitle.textContent = message;
+        if (successDescription) successDescription.textContent = description;
+
+        // Hide the add container
+        addContainer.classList.add('hidden');
+
+        // Show success screen
+        successScreen.style.display = 'flex';
+    }
+
     async handleSubmit(e) {
         e.preventDefault();
 
@@ -175,21 +192,34 @@ class GroceryItemForm {
             return;
         }
 
-        this.setLoadingState(true);
+        // Show success screen immediately with "submitting" message
+        this.showSuccessScreen('Submitting Form...', 'Please wait while we add your item...');
 
         try {
             const formData = this.getFormData();
             await this.apiService.addGroceryItem(formData);
 
-            this.showSuccess('Item added successfully!');
+            // Update success screen to show success message
             setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1000);
+                this.showSuccessScreen('Item Added Successfully!', 'Redirecting you back to the dashboard...');
+
+                // Redirect after showing success message for 2 seconds
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+            }, 1000); // Show submitting message for 1 second
 
         } catch (error) {
             console.error('Failed to add item:', error);
+
+            // Hide success screen and show error
+            const addContainer = document.getElementById('addContainer');
+            const successScreen = document.getElementById('successScreen');
+
+            successScreen.style.display = 'none';
+            addContainer.classList.remove('hidden');
+
             this.showError('Failed to add item. Please try again.');
-        } finally {
             this.setLoadingState(false);
         }
     }
@@ -235,7 +265,9 @@ class GroceryItemForm {
 
         // Auto remove after 3 seconds
         setTimeout(() => {
-            notification.remove();
+            if (notification && notification.parentNode) {
+                notification.remove();
+            }
         }, 3000);
     }
 

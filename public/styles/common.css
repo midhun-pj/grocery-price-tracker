@@ -9,7 +9,7 @@
     --color-text-lighter: #999;
     --color-white: #ffffff;
     --color-error: #ef4444;
-    
+
 
     /* UI Colors */
     --color-border-light: #f0f0f0;
@@ -62,10 +62,6 @@ body {
     }
 }
 
-.slide-in {
-    animation: slideIn 0.3s ease-out;
-}
-
 @keyframes slideIn {
     from {
         transform: translateX(100%);
@@ -75,44 +71,6 @@ body {
         transform: translateX(0);
     }
 }
-
-/* Pagination Controls */
-.pagination-controls {
-    margin: 10px 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-}
-
-.pagination-btn {
-    background: var(--gradient-primary);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.pagination-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.pagination-btn:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.page-info {
-    color: var(--color-text-light);
-    font-size: 14px;
-    padding: 0 10px;
-}
-
 
 /* Loading States */
 .loading {
@@ -163,6 +121,7 @@ body {
 
 .header h2 {
     padding-left: 10px;
+    font-size: 18px;
 }
 
 .p-5 {
@@ -193,4 +152,10 @@ body {
 
 .flex-column {
     flex-direction: column;
+}
+
+.loading-spinner {
+    text-align: center;
+    padding: 40px;
+    color: var(--color-text-light);
 }

@@ -4,61 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Login – Grocery Tracker</title>
+    <title>Price tracker</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles/common.css">
-    <style>
-        body {
-            background: var(--gradient-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh
-        }
-
-        .login-card {
-            background: white;
-            border-radius: 16px;
-            padding: 40px 30px;
-            max-width: 360px;
-            width: 100%;
-            box-shadow: var(--shadow-hover)
-        }
-
-        .login-card h2 {
-            margin-bottom: 20px
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 14px;
-            border-radius: 10px;
-            border: 2px solid #eee;
-            margin-bottom: 15px;
-            background: var(--color-bg-light)
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 10px;
-            background: var(--gradient-primary);
-            color: white;
-            font-weight: 600;
-            font-size: 16px;
-            cursor: pointer
-        }
-    </style>
+    <link rel="stylesheet" href="styles/login.css">
 </head>
 
-<body>
+<body class="body-custom">
     <div class="login-card fade-in">
-        <h2>Sign in</h2>
-        <input id="username" class="form-input" placeholder="Username">
-        <input id="password" type="password" class="form-input" placeholder="Password">
-        <button id="loginBtn" class="submit-btn">Login</button>
-        <p id="err" style="color:red;margin-top:10px"></p>
+        <h2 id="page-heading">Signin</h2>
+        <form id="loginForm">
+            <input id="username" class="form-input" placeholder="Username" required>
+            <input id="password" type="password" class="form-input" placeholder="Password" required>
+            <button id="loginBtn" type="submit" class="submit-btn">Signin</button>
+            <p id="err" style="color:red;margin-top:10px;display:none;"></p>
+            <p id="toggle-auth" style="margin-top:15px;text-align:center;cursor:pointer;color:#007bff;">
+                Don't have an account? <span class="toggle-text">Sign up</span>
+            </p>
+        </form>
     </div>
     <script src="js/login.js"></script>
 </body>

@@ -11,7 +11,7 @@
 </head>
 
 <body>
-    <div class="add-container">
+    <div class="add-container" id="addContainer">
         <div class="header disp-flex flex-center p-5">
             <button class="disp-flex back-btn" id="backButton">
                 <i class="fas fa-arrow-left"></i>
@@ -61,6 +61,21 @@
 
                 <button type="submit" class="submit-btn">Add</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Success Screen with Loader -->
+    <div class="success-screen" id="successScreen" style="display: none;">
+        <div class="success-content">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2>Item Added Successfully!</h2>
+            <p>Redirecting you back to the dashboard...</p>
+
+            <section class="loading-spinner">
+                <div class="spinner"></div>
+            </section>
         </div>
     </div>
 

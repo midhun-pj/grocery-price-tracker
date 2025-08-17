@@ -16,8 +16,15 @@
         <!-- Dashboard View -->
         <div id="dashboard-view">
             <section class="header">
-                <h1>Grocery Tracker</h1>
-                <p>Compare prices across supermarkets</p>
+                <div class="header-content">
+                    <div class="header-text">
+                        <h1>Price Tracker</h1>
+                        <p>Compare prices across supermarkets</p>
+                    </div>
+                    <span class="logout-btn" id="logoutBtn" title="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </span>
+                </div>
             </section>
 
             <section class="search-container">
@@ -73,18 +80,19 @@
                     Best price this month
                 </div>
             </div>
+            
 
-            <div class="stats-container">
+             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-value" id="avgPrice">€1.65</div>
-                    <div class="stat-label">Avg Price</div>
+                    <div class="stat-label">Average Price</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value" id="totalPurchases">4</div>
-                    <div class="stat-label">Purchases</div>
+                    <div class="stat-label">Total Purchases</div>
                 </div>
             </div>
-
+            
             <div class="history-section">
                 <h3 class="section-title">Purchase History</h3>
                 <div id="historyContainer">

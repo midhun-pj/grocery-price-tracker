@@ -33,10 +33,6 @@ class Grocery {
     }
   }
 
-  async addItem(item) {
-    await fetch(this.apiUrl, { method: 'POST', headers, body: JSON.stringify(item) });
-  }
-
   async deleteItem(id) {
     await fetch(`${this.apiUrl}/${id}`, { method: 'DELETE', headers });
   }
@@ -76,6 +72,8 @@ class Dashboard {
     window.addEventListener('touchstart', this.handleTouchStart.bind(this));
     window.addEventListener('touchmove', this.handleTouchMove.bind(this));
     window.addEventListener('touchend', this.handleTouchEnd.bind(this));
+
+    this.handleLogout();
   }
 
   handleScroll() {
@@ -306,7 +304,8 @@ class Dashboard {
       searchInput: document.getElementById('searchInput'),
       itemDetail: document.getElementById('item-detail-view'),
       dashboard: document.getElementById('dashboard-view'),
-      backButton: document.querySelector('.back-btn')
+      backButton: document.querySelector('.back-btn'),
+      logoutButton: document.getElementById('logoutBtn')
     };
   }
 
@@ -402,6 +401,19 @@ class Dashboard {
     this.showDashboard(true);
     this.handleVisibilityOfElements(this.elements.itemDetail, 'none');
     this.handleVisibilityOfElements(this.elements.backButton, 'none');
+  }
+
+  handleLogout() {
+    if (this.elements.logoutButton) {
+      this.elements.logoutButton.addEventListener('click', function () {
+        // Clear authentication data
+        localStorage.removeItem('token');
+        sessionStorage.clear();
+
+        // Redirect to login page
+        window.location.href = 'login.html';
+      });
+    }
   }
 
 }

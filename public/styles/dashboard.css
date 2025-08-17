@@ -1,10 +1,13 @@
 .dash-container {
     max-width: 414px;
-    margin: 0 auto;
     min-height: 100vh;
+
     background: var(--color-white);
+
     position: relative;
+    
     box-shadow: var(--shadow-light);
+    margin: 0 auto;
 }
 
 /* Search Bar */
@@ -50,10 +53,12 @@
 
 /* Grocery Grid */
 .grocery-grid {
-    padding: 0 20px 10px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 10px;
+    
+    padding: 0 20px 10px;
+    margin-top: 15px;
 }
 
 .grocery-card {
@@ -75,11 +80,14 @@
 .grocery-icon {
     width: 50px;
     height: 50px;
+
     background: var(--gradient-card);
     border-radius: 12px;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     color: var(--color-white);
     font-size: 20px;
     margin-bottom: 12px;
@@ -132,13 +140,17 @@
     position: fixed;
     right: 25px;
     bottom: 74px;
+
     width: 50px;
     height: 50px;
+
     background: var(--gradient-primary);
     border-radius: 50%;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     color: var(--color-white);
     font-size: 20px;
     text-decoration: none;
@@ -147,6 +159,7 @@
 
 .no-more-data {
     padding: 30px 10px;
+
     display: flex;
     justify-content: center;
     align-items: center;
@@ -169,11 +182,6 @@
     margin-bottom: 20px;
 }
 
-.loading-spinner {
-    text-align: center;
-    padding: 40px;
-    color: #666;
-}
 
 .delete-btn {
     background: transparent;
@@ -189,6 +197,13 @@
     position: absolute;
     top: 10px;
     right: 10px;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
 
 /* Responsive Design */
