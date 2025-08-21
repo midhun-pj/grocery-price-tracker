@@ -47,4 +47,44 @@ router.post('/create-user', (req, res) => {
     }
 });
 
+// NEW: Update user password
+router.put('/update-password/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+        const { newPassword } = req.body;
+
+        if (!newPassword) {
+            return res.status(400).json({ message: 'New password is required' });
+        }
+
+        // Hash the new password
+        const hashedPassword = bcrypt.hashSync(newPassword, 10);
+        const result = updateUserPassword(parseInt(id), hashedPassword);
+
+        if (result.changes === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json({ message: 'Password updated successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating password', error: error.message });
+    }
+});
+
+// NEW: Delete user
+router.delete('/delete-user/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = deleteUser(parseInt(id));
+
+        if (result.changes === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json({ message: 'User deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting user', error: error.message });
+    }
+});
+
 export default router;

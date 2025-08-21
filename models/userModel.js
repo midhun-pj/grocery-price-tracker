@@ -12,3 +12,6 @@ export const getAllUsers = () =>
 
 export const deleteUser = (id) =>
   db.prepare('DELETE FROM users WHERE id = ?').run(id);
+
+export const updateUserPassword = (id, newPasswordHash) =>
+  db.prepare('UPDATE users SET password = ? WHERE id = ?').run(newPasswordHash, id);
