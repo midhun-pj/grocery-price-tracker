@@ -15,3 +15,15 @@ export const deleteUser = (id) =>
 
 export const updateUserPassword = (id, newPasswordHash) =>
   db.prepare('UPDATE users SET password = ? WHERE id = ?').run(newPasswordHash, id);
+
+// Remove all refresh tokens for a specific user
+export async function removeAllUserRefreshTokens(userId) {
+    const stmt = db.prepare('DELETE FROM refresh_tokens WHERE user_id = ?');
+    return stmt.run(userId);
+}
+
+// Find user by ID
+export function findById(id) {
+    const stmt = db.prepare('SELECT * FROM users WHERE id = ?');
+    return stmt.get(id);
+}
