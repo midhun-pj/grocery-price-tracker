@@ -2,7 +2,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-import { findByUsername, createUser } from '../models/userModel.js';
+import { findByUsername, createUser, removeAllUserRefreshTokens, findById } from '../models/userModel.js';
 imrpot { generateTokens } from '../utils/tokenUtils.js';
 
 import { JWT_SECRET } from '../config.js';
