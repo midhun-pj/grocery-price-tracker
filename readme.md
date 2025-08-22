@@ -22,7 +22,7 @@ A modern web application to track grocery prices across different supermarkets.
 ## Setup
 
 1. **Clone the repository**
-   - git clone https://github.com/yourusername/grocery-price-tracker.git
+   - git clone https://github.com/midhun-pj/grocery-price-tracker.git
    - cd grocery-price-tracker
 
 
