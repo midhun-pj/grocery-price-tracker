@@ -247,4 +247,24 @@ router.delete('/delete-user/:id', (req, res) => {
     }
 });
 
+app.post('/api/auth/logout', authenticateToken, (req, res) => {
+  try {
+    const { refreshToken } = req.cookies;
+    
+    // Remove refresh token from database
+    if (refreshToken) {
+      db.prepare(`DELETE FROM refresh_tokens WHERE token = ?`).run(refreshToken);
+    }
+    
+    // Clear cookies
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+    
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Logout failed' });
+  }
+});
+
+
 export default router;
